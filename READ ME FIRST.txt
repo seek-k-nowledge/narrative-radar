@@ -1,0 +1,17 @@
+NARRATIVE RADAR - Listening Between the Lies
+
+The only things you need in this folder:
+
+  Start Narrative Radar   Double-click to start. Leave the black window open.
+  Open Radar              Opens the Radar page (http://localhost:8765).
+  Install 24-7            One time: makes the Radar start every time you log in.
+  Remove 24-7             Undoes that.
+  watchlist               Your topics, one per line. You can also add them on the Radar page.
+  Narrative-Radar-Guide   Picture guide: what every part of the Radar means.
+
+Folders (you never need to open these):
+
+  engine            The Radar program and its saved data. Don't delete it.
+  deep-dive tools   The original tools for studying one topic over 14 days.
+
+Full manual: the "Narrative Radar Master Guide" in your Claude chat.

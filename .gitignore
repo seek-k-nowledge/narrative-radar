@@ -1,0 +1,17 @@
+# Live data the Radar writes while running. Never commit these.
+engine/data.json
+engine/radar_cache.json
+engine/alerts.csv
+engine/pins.json
+engine/dashboard.html
+engine/*.tmp
+engine/history/
+reports/
+deep-dive tools/data/
+deep-dive tools/reports/
+__pycache__/
+*.pyc
+# Secrets, just in case
+*.key
+*api-key*
+.env

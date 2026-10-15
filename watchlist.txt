@@ -1,0 +1,31 @@
+# One topic per line. Lines starting with # are ignored.
+# Quotes = exact phrase. Two quoted parts = both must appear, e.g. "AI" "cyberattack".
+# sourcelang:/sourcecountry: only affect GDELT; the other sources ignore them.
+
+# --- Case File 001: "The Day After" (AI companies planning for a catastrophic AI event) ---
+"AI" "cyberattack" sourcelang:english
+"AI" "catastrophic" sourcelang:english
+"AI" "backlash" sourcelang:english
+"superintelligence" sourcelang:english
+
+# --- AI in general ---
+"artificial intelligence" sourcelang:english
+"OpenAI" sourcelang:english
+"Anthropic" sourcelang:english
+"AI safety" sourcelang:english
+"AI regulation" sourcelang:english
+
+# --- Influence and deception (the show's core beat) ---
+"deepfake" sourcelang:english
+"disinformation" sourcelang:english
+"influence operation" sourcelang:english
+"troll farm" sourcelang:english
+"bot network" sourcelang:english
+
+# --- US politics pressure points ---
+"protest" sourcelang:english sourcecountry:US
+"election" sourcelang:english sourcecountry:US
+
+# --- Detachment 201: tech executives as Army officers ---
+"Detachment 201" sourcelang:english
+"Executive Innovation Corps" sourcelang:english

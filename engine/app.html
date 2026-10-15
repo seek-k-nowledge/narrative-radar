@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Narrative Radar</title>
+<style>
+:root{--bg:#05080d;--panel:#0a111b;--panel2:#0d1622;--line:#1c2a3a;--ink:#dbe6f0;--dim:#8292a7;--hot:#ff3344;--warn:#ffb020;--calm:#39d98a;--ai:#7fd4ff;--y:#ffd166;--quiet:#5b6b80}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "JetBrains Mono",Consolas,ui-monospace,monospace}
+a{color:inherit}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.02) 0 1px,transparent 1px 3px);z-index:50}
+header{position:sticky;top:0;z-index:20;background:rgba(5,8,13,.96);border-bottom:1px solid var(--line);padding:12px 18px 0}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.brand{font:700 20px/1 Oswald,Impact,"Arial Narrow",sans-serif;letter-spacing:.14em}
+.brand span{color:var(--hot)}
+.brand small{display:block;font:11px/1.6 "JetBrains Mono",Consolas,monospace;letter-spacing:.08em;color:var(--dim);margin-top:3px}
+.status{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--dim)}
+.pill{border:1px solid var(--line);padding:4px 9px;white-space:nowrap}
+.pill b{color:var(--ink)}
+.pill.alarm{border-color:var(--hot);color:#fff;background:rgba(255,51,68,.15)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--calm);margin-right:6px;animation:p 1.4s infinite}
+.alarm .dot{background:var(--hot)}
+@keyframes p{50%{opacity:.25}}
+button,.btn{font:inherit;font-size:12px;letter-spacing:.06em;background:#0b121c;color:var(--ink);border:1px solid var(--line);padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--y)}
+button.primary{border-color:var(--y);color:var(--y)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.tools input{font:inherit;font-size:12px;background:#0b121c;color:var(--ink);border:1px solid var(--line);padding:6px 9px;min-width:200px;flex:1}
+.ticker{display:flex;align-items:center;height:34px;border-top:1px solid var(--line);overflow:hidden;margin:0 -18px}
+.ticker .lab{flex:none;height:100%;display:flex;align-items:center;padding:0 12px;background:var(--hot);color:#000;font-weight:800;letter-spacing:.14em;font-size:12px}
+.ticker .tw{flex:1;overflow:hidden;white-space:nowrap}
+.ticker .run{display:inline-block;padding-left:100%;animation:tick 90s linear infinite;font-size:12.5px}
+.ticker .run:hover{animation-play-state:paused}
+.ticker .run a{text-decoration:none;margin-right:34px}
+.ticker .run a b{color:var(--hot);margin-right:6px}
+@keyframes tick{to{transform:translateX(-100%)}}
+nav{display:flex;gap:2px;overflow-x:auto;margin:0 -18px;padding:0 18px;border-top:1px solid var(--line)}
+nav button{border:0;border-bottom:2px solid transparent;background:none;padding:9px 12px;color:var(--dim);white-space:nowrap}
+nav button.on{color:var(--ink);border-bottom-color:var(--y)}
+nav button .n{color:var(--y);margin-left:4px}
+main{padding:18px}
+h2{margin:0 0 10px;font-size:12px;letter-spacing:.2em;color:var(--dim);font-weight:700}
+h2 em{font-style:normal;color:var(--ai);margin-left:8px;letter-spacing:.06em}
+.grid3{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media(max-width:1100px){.grid3{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);padding:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--quiet);padding:12px;cursor:pointer;position:relative}
+.card:hover{border-color:#2c4a63}
+.card.hot{border-top-color:var(--hot);box-shadow:0 0 22px -8px var(--hot)}
+.card.warn{border-top-color:var(--warn)}
+.card h3{margin:0;font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.tag{flex:none;font-size:10.5px;font-weight:800;letter-spacing:.14em;padding:1px 6px;border:1px solid currentColor;height:fit-content}
+.tag.hot{color:#000;background:var(--hot);border-color:var(--hot)} .tag.warn{color:var(--warn)} .tag.quiet{color:var(--quiet)}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 6px}
+.nums b{display:block;font-size:19px} .nums small{color:var(--dim);font-size:10.5px}
+.spark{width:100%;height:46px;display:block}
+.spark polyline{fill:none;stroke:var(--ink);stroke-width:1.6;vector-effect:non-scaling-stroke}
+.spark polygon{fill:rgba(219,230,240,.06)}
+.card.hot .spark polyline{stroke:var(--hot)}
+.meta{font-size:11px;color:var(--dim);margin:4px 0}
+.mood b{font-weight:800} .m-calm{color:var(--calm)} .m-warn{color:var(--warn)} .m-hot{color:var(--hot)} .m-quiet{color:var(--quiet)}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+.chip{font-size:10.5px;padding:1px 6px;border:1px solid var(--line);color:var(--dim)} .chip b{color:var(--ink)} .chip.off{opacity:.5}
+.items{list-style:none;margin:0;padding:0}
+.it{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:8px 0;border-bottom:1px dotted var(--line);align-items:start}
+.it.noimg{grid-template-columns:1fr}
+.it img{width:92px;height:56px;object-fit:cover;background:#111b28;border:1px solid var(--line)}
+.it .t{font-size:13px;line-height:1.35}
+.it .t a{text-decoration:none} .it .t a:hover{text-decoration:underline}
+.it .s{font-size:11px;color:var(--dim);margin-top:2px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pl{font-size:9.5px;font-weight:800;letter-spacing:.08em;padding:0 5px;border:1px solid currentColor}
+.pl.GN{color:#6fb4ff}.pl.BING{color:#4fd1c5}.pl.HN{color:#ff8a3d}.pl.MASTO{color:#b48cff}.pl.REDDIT{color:#ff5a36}.pl.OUT{color:var(--y)}.pl.YT{color:#ff4d4d}.pl.TREND{color:#7dffb2}.pl.WIKI{color:#e6eef6}.pl.TOP{color:#6fb4ff}
+.aitag{font-size:9.5px;font-weight:800;color:#000;background:var(--ai);padding:0 4px}
+.hotdot{color:var(--hot);font-weight:800}
+.act{margin-left:auto;display:flex;gap:4px}
+.act button{padding:1px 6px;font-size:11px}
+.act button.pinned{color:var(--y);border-color:var(--y)}
+mark{background:var(--y);color:#000;padding:0 1px}
+.viral{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.vids{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.vid{background:var(--panel);border:1px solid var(--line)}
+.vid img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#111b28}
+.vid .b{padding:8px 10px}
+.vid .t{font-size:12.5px;line-height:1.35} .vid .t a{text-decoration:none}
+.vid .s{font-size:11px;color:var(--dim);margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.filters button.on{border-color:var(--y);color:var(--y)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--dim);font-weight:400;letter-spacing:.08em}
+.ok{color:var(--calm)} .bad{color:var(--hot)}
+.pin{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--y);padding:10px 12px;margin-bottom:10px}
+.pin textarea{width:100%;font:inherit;font-size:12px;background:#0b121c;color:var(--ink);border:1px solid var(--line);padding:6px;margin-top:6px;min-height:46px}
+.pin select{font:inherit;font-size:11px;background:#0b121c;color:var(--ink);border:1px solid var(--line)}
+.empty{color:var(--dim);padding:18px;border:1px dashed var(--line);text-align:center}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:40;display:none;align-items:flex-start;justify-content:center;padding:4vh 12px;overflow:auto}
+.modal.on{display:flex}
+.modal .box{background:var(--bg);border:1px solid #2c4a63;max-width:980px;width:100%;padding:18px}
+.modal h3{margin:0 0 6px;font-size:18px}
+.tl{position:relative;height:38px;border-bottom:1px solid var(--line);margin:10px 0 14px}
+.tl span{position:absolute;bottom:4px;width:9px;height:9px;border-radius:50%;transform:translateX(-50%)}
+.tl small{position:absolute;bottom:-18px;font-size:10px;color:var(--dim)}
+.note{font-size:12px;color:var(--dim);line-height:1.6}
+.offline{background:#2a1015;border:1px solid var(--hot);padding:12px;margin-bottom:14px}
+.hide{display:none!important}
+</style></head>
+<body>
+<header>
+  <div class="top">
+    <div class="brand">LBTL // <span>NARRATIVE RADAR</span><small>Listening Between the Lies · Paul Edward Harris 4th</small></div>
+    <div class="status">
+      <span class="pill" id="spk"><span class="dot"></span><b>0</b> spikes</span>
+      <span class="pill">last check <b id="last">—</b></span>
+      <span class="pill">next in <b id="next">—</b></span>
+      <button class="primary" id="checkNow" title="Start a new round right now">Check now</button>
+      <button id="notifyBtn" title="Pop-up alerts for new spikes and breaking news">Alerts: off</button>
+    </div>
+  </div>
+  <div class="tools">
+    <input id="search" placeholder="Search everything on the Radar…">
+    <input id="hl" placeholder="Highlight words, comma separated (e.g. Anthropic, cyberattack)">
+  </div>
+  <div class="ticker"><span class="lab">BREAKING</span><span class="tw"><span class="run" id="tickerRun">Waiting for the first round…</span></span></div>
+  <nav id="tabs"></nav>
+</header>
+<main id="main"></main>
+
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+
+<script>
+const TABS = [["overview","Overview"],["watch","Watchlist"],["viral","Viral now"],["videos","Videos"],["breaking","Breaking"],["board","Case Board"],["sources","Sources"],["alerts","Alerts"],["help","How to use"]];
+const PL = {"Google Trends":"TREND","Wikipedia":"WIKI","Top news":"TOP","Google News":"GN","Bing News":"BING","Hacker News":"HN","Mastodon":"MASTO","Reddit":"REDDIT","Outlets":"OUT","YouTube":"YT"};
+let D = null, PINS = [], tab = store("tab") || "overview", vidFilter = "all", lastGen = 0;
+
+function store(k, v){ try{ if(v===undefined) return localStorage.getItem("radar_"+k); localStorage.setItem("radar_"+k, v); }catch(e){ return null; } }
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function hlWords(){ return (document.getElementById("hl").value||"").split(",").map(s=>s.trim()).filter(s=>s.length>1); }
+function mark(text){
+  let h = esc(text); const ws = hlWords(); if(!ws.length) return h;
+  const re = new RegExp("(" + ws.map(w=>esc(w).replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|") + ")", "gi");
+  return h.replace(re, "<mark>$1</mark>");
+}
+function ago(ts){ if(!ts) return ""; const s = Date.now()/1000 - ts; if(s<60) return "just now"; if(s<3600) return Math.round(s/60)+"m ago"; if(s<86400) return Math.round(s/3600)+"h ago"; return Math.round(s/86400)+"d ago"; }
+function clock(ts){ return new Date(ts*1000).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}); }
+function key(it){ return (it.url || it.title || "").slice(0,300); }
+function isPinned(it){ return PINS.some(p => p.key === key(it)); }
+function moodLabel(t){ if(t==null) return ["NO READ","m-quiet"]; if(t>=.05) return ["CALM / POSITIVE","m-calm"]; if(t>-.05) return ["NEUTRAL","m-calm"]; if(t>-.25) return ["TENSE","m-warn"]; return ["HOSTILE / FEARFUL","m-hot"]; }
+function status(r){ if(r.stale) return ["SAVED","quiet"]; if(r.spike) return ["SPIKE","hot"]; if((r.z||0) >= (r.z_cut||3)/2) return ["RISING","warn"]; return ["QUIET","quiet"]; }
+
+let ITEMS = {}; let iid = 0;
+function reg(it){ const id = "i" + (iid++); ITEMS[id] = it; return id; }
+function itemRow(it, {img=true}={}){
+  const id = reg(it), p = PL[it.platform] || "OUT";
+  const ai = /\b(AI|A\.I\.)\b|artificial intelligence|OpenAI|ChatGPT|Anthropic|Claude|Gemini|LLM|deepfake/i.test(it.title||"");
+  const pic = img && it.image ? `<img loading="lazy" src="${esc(it.image)}" alt="" onerror="this.remove();this.parentNode&&this.parentNode.classList.add('noimg')">` : "";
+  return `<li class="it ${pic?"":"noimg"}" data-text="${esc((it.title+" "+(it.source||"")).toLowerCase())}">${pic}<div>
+    <div class="t">${it.hot?'<span class="hotdot">● </span>':""}${ai?'<span class="aitag">AI</span> ':""}<a href="${esc(it.url)}" target="_blank" rel="noopener">${mark(it.title)}</a></div>
+    <div class="s"><span class="pl ${p}">${p}</span>${esc(it.source||"")}<span>${ago(it.ts)}</span>${it.views?`<span>${Number(it.views).toLocaleString()} views</span>`:""}
+      <span class="act"><button data-pin="${id}" class="${isPinned(it)?"pinned":""}" title="Pin to Case Board">★</button><button data-watch="${id}" title="Add a watchlist topic from this">+ Watch</button></span></div>
+  </div></li>`;
+}
+function spark(vals){
+  if(!vals || !vals.length) return '<svg class="spark"></svg>';
+  const w=300,h=46,top=Math.max(...vals)||1,st=w/Math.max(1,vals.length-1);
+  const pts = vals.map((v,i)=>`${(i*st).toFixed(1)},${(h-4-(v/top)*(h-10)).toFixed(1)}`).join(" ");
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polygon points="0,${h} ${pts} ${w},${h}"/><polyline points="${pts}"/></svg>`;
+}
+function chips(r){
+  const c = r.counts||{}, s = r.status||{};
+  return ["Google News","Bing News","Hacker News","Mastodon","Reddit","Outlets","YouTube","GDELT"].map(n=>{
+    const st = s[n]; let lab, off=false;
+    if(n==="GDELT"){ lab = st||"—"; off = st!=="ok"; }
+    else if(typeof st==="number"){ lab = (n==="Outlets"||n==="YouTube") ? st : (c[n]||0); }
+    else { lab = st||"—"; off = true; }
+    return `<span class="chip ${off?"off":""}">${PL[n]||n} <b>${esc(lab)}</b></span>`;
+  }).join("");
+}
+function card(r, i){
+  const [st, cls] = status(r), [m, mc] = moodLabel(r.tone);
+  const first = (r.first||[]).slice(0,4).map(([p,t])=>`${PL[p]||p} ${clock(t)}`).join(" → ");
+  const heads = (r.headlines||[]).slice(0,3).map(h=>itemRow({title:h.title,url:h.url,source:h.domain,platform:h.platform,ts:h.ts,image:h.image})).join("");
+  return `<div class="card ${cls}" data-topic="${i}" data-text="${esc((r.label+" "+(r.items||[]).map(x=>x.title).join(" ")).toLowerCase())}">
+    <h3>${mark(r.label||r.query)}<span class="tag ${cls}">${st}</span></h3>
+    <div class="nums"><div><b>${Math.round(r.latest||0)}</b><small>last hour</small></div><div><b>${(r.mean||0).toFixed(1)}</b><small>normal hour</small></div><div><b>${(r.z||0).toFixed(1)}</b><small>z-score</small></div></div>
+    ${spark(r.hours)}
+    <div class="meta">${esc(r.signal||"")}</div>
+    <div class="meta mood">MOOD <b class="${mc}">${m}</b> ${r.tone!=null?(r.tone>0?"+":"")+r.tone.toFixed(2):""}</div>
+    <div class="chips">${chips(r)}</div>
+    ${first?`<div class="meta">FIRST SEEN <span style="color:var(--ink)">${esc(first)}</span></div>`:""}
+    <ul class="items">${heads}</ul>
+    <div class="meta" style="margin-top:6px;color:var(--y)">Click the card for all ${ (r.items||[]).length } stories →</div>
+  </div>`;
+}
+
+function render(){
+  ITEMS = {}; iid = 0;
+  const m = document.getElementById("main");
+  if(!D){ m.innerHTML = '<div class="empty">Waiting for the first round. The first one takes a few minutes…</div>'; return; }
+  const T = D.topics || [], spikes = T.filter(t=>t.spike).length;
+  const spk = document.getElementById("spk"); spk.classList.toggle("alarm", spikes>0); spk.querySelector("b").textContent = spikes;
+  document.getElementById("last").textContent = D.generated ? clock(D.generated) : "—";
+  document.getElementById("tickerRun").innerHTML = (D.breaking||[]).slice(0,25).map(b=>`<a href="${esc(b.url)}" target="_blank" rel="noopener"><b>${esc(b.source)}</b>${mark(b.title)} <span style="color:var(--dim)">· ${ago(b.ts)}</span></a>`).join("") || "Nothing new in the last 90 minutes.";
+  renderTabs();
+  const sorted = T.map((t,i)=>[t,i]).sort((a,b)=>(b[0].z||0)-(a[0].z||0));
+  const viralCols = (limit) => Object.entries(D.trends||{}).map(([name, items]) => `<div class="panel"><h2>${esc(name.toUpperCase())}</h2>${typeof items==="string" ? `<div class="meta">${esc(items)} this round</div>` : `<ul class="items">${items.slice(0,limit).map(it=>itemRow({title:it.title,url:it.url,source:[it.extra,it.note].filter(Boolean).join(" · "),platform:({"Shared on Mastodon":"Mastodon","Hacker News front page":"Hacker News","Google searches":"Google Trends","Wikipedia most read":"Wikipedia","Top news":"Top news"})[name]||"Outlets",image:it.image,ts:0})).join("")}</ul>`}</div>`).join("");
+  let html = "";
+  if(location.protocol === "file:") html += '<div class="offline">You opened this file directly. Start the Radar with <b>Start Narrative Radar.bat</b>, then use <b>http://localhost:8765</b> so the buttons work.</div>';
+  if(tab==="overview"){
+    const aiTrend = Object.values(D.trends||{}).filter(v=>typeof v!=="string").flat().filter(i=>i.ai).length;
+    html += `<div class="grid3">
+      <section><h2>BREAKING · LAST 90 MIN</h2><div class="panel"><ul class="items">${(D.breaking||[]).slice(0,10).map(b=>itemRow(b)).join("") || '<li class="meta">Nothing new in the last 90 minutes.</li>'}</ul></div></section>
+      <section><h2>HOTTEST ON YOUR WATCHLIST</h2><div class="cards" style="grid-template-columns:1fr">${sorted.slice(0,3).map(([t,i])=>card(t,i)).join("")}</div></section>
+      <section><h2>VIRAL NOW <em>${aiTrend} AI item${aiTrend===1?"":"s"}</em></h2><div style="display:grid;gap:12px">${viralCols(4)}</div>
+        <h2 style="margin-top:16px">NEWEST VIDEOS</h2><div class="vids" style="grid-template-columns:1fr 1fr">${(D.videos||[]).slice(0,4).map(vidCard).join("")}</div></section>
+    </div>`;
+  } else if(tab==="watch"){
+    html += `<div class="tools"><input id="newTopic" placeholder="Add a topic to watch, e.g. AI cyberattack  or  Anthropic"><button class="primary" id="addTopic">+ Add to watchlist</button></div>
+      <div class="cards">${sorted.map(([t,i])=>card(t,i)).join("")}</div>`;
+  } else if(tab==="viral"){
+    html += `<h2>VIRAL NOW · WHAT IS BLOWING UP EVERYWHERE</h2><p class="note">Click <b>+ Watch</b> on anything to start tracking it.</p><div class="viral">${viralCols(10)}</div>`;
+  } else if(tab==="videos"){
+    const groups = {all:"All", news:"News channels", ai:"AI channels", match:"About my watchlist"};
+    const aiCh = ["Two Minute Papers","AI Explained","Matt Wolfe"];
+    const watchVids = new Set(T.flatMap(t=>(t.items||[]).filter(x=>x.platform==="YouTube").map(x=>x.url)));
+    let v = D.videos||[];
+    if(vidFilter==="news") v = v.filter(x=>!aiCh.includes(x.source));
+    if(vidFilter==="ai") v = v.filter(x=>aiCh.includes(x.source) || x.ai);
+    if(vidFilter==="match") v = v.filter(x=>watchVids.has(x.url));
+    html += `<div class="filters">${Object.entries(groups).map(([k,l])=>`<button data-vf="${k}" class="${vidFilter===k?"on":""}">${l}</button>`).join("")}</div>
+      <div class="vids">${v.map(vidCard).join("") || '<div class="empty">No videos in this filter yet.</div>'}</div>`;
+  } else if(tab==="breaking"){
+    html += `<h2>BREAKING · NEWEST FROM ${new Set((D.breaking||[]).map(b=>b.source)).size} OUTLETS AND CHANNELS (LAST 90 MIN)</h2><div class="panel"><ul class="items">${(D.breaking||[]).map(b=>itemRow(b)).join("") || '<li class="meta">Nothing in the last 90 minutes.</li>'}</ul></div>
+      <h2 style="margin-top:18px">LATEST FROM OUTLETS AND RESEARCHERS</h2><div class="panel"><ul class="items">${(D.outlets||[]).slice(0,60).map(b=>itemRow(b)).join("")}</ul></div>`;
+  } else if(tab==="board"){
+    html += `<h2>CASE BOARD · ${PINS.length} PINNED</h2>
+      <p class="note">Pin anything with ★. Add a note and a label, then export it as research notes for an episode. Saved on your laptop in pins.json.</p>
+      <div class="tools"><button class="primary" id="exportPins">Download as notes (.md)</button><button id="clearPins">Clear board</button></div>
+      ${PINS.length ? PINS.map((p,i)=>`<div class="pin" data-text="${esc((p.title+" "+(p.note||"")).toLowerCase())}">
+        <div class="t"><a href="${esc(p.url)}" target="_blank" rel="noopener">${mark(p.title)}</a></div>
+        <div class="meta"><span class="pl ${PL[p.platform]||"OUT"}">${PL[p.platform]||"OUT"}</span> ${esc(p.source||"")} · pinned ${new Date(p.pinned_at).toLocaleString()}
+          · <select data-tagpin="${i}">${["Lead","Evidence","Claim to check","Tell / red flag","For the script"].map(t=>`<option ${p.tag===t?"selected":""}>${t}</option>`).join("")}</select>
+          · <button data-unpin="${i}">remove</button></div>
+        <textarea data-notepin="${i}" placeholder="Your note: why this matters, what to check, who benefits…">${esc(p.note||"")}</textarea></div>`).join("") : '<div class="empty">Nothing pinned yet. Click ★ on any story, video or trend.</div>'}`;
+  } else if(tab==="sources"){
+    const h = D.health||{};
+    html += `<h2>SOURCES · ${Object.keys(h).length} CONNECTED THIS ROUND</h2><p class="note">Numbers = stories found this round. "blocked" = that site refused this round (normal now and then; it tries again next round).</p>
+      <table><thead><tr><th>SOURCE</th><th>THIS ROUND</th></tr></thead><tbody>${Object.entries(h).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="${typeof v==="number"?"ok":"bad"}">${esc(v)}</td></tr>`).join("")}</tbody></table>
+      <p class="note">Round took ${D.round_secs||"?"} seconds · mood engine: ${esc(D.mood_engine||"")}</p>`;
+  } else if(tab==="alerts"){
+    const a = D.alerts||[];
+    html += `<h2>ALERT LOG · EVERY SPIKE SO FAR</h2><table><thead><tr><th>TIME</th><th>TOPIC</th><th>Z</th><th>TOP HEADLINE</th></tr></thead><tbody>${a.map(x=>`<tr><td>${esc(x.time)}</td><td>${esc(x.query)}</td><td>${esc(x.z)}</td><td><a href="${esc(x.url)}" target="_blank" rel="noopener">${mark(x.top_headline)}</a></td></tr>`).join("") || '<tr><td colspan="4" class="meta">No spikes yet.</td></tr>'}</tbody></table>`;
+  } else if(tab==="help"){
+    html += `<h2>HOW TO USE THE RADAR</h2><div class="panel note" style="color:var(--ink)">
+      <p><b>Overview</b> is the one-screen briefing: breaking news, your hottest topics, what is viral, newest videos.</p>
+      <p><b>★</b> pins a story to your <b>Case Board</b>. <b>+ Watch</b> turns anything into a watchlist topic. Select a few words of a headline first to use them as the topic.</p>
+      <p><b>Highlight</b> box: type names or words and they light up yellow everywhere. <b>Search</b> box: hides everything that doesn't match.</p>
+      <p><b>Alerts</b> button: turn on pop-ups for new spikes and breaking news. <b>Check now</b>: start a new round without waiting.</p>
+      <p>Click any topic card for every story, a timeline of who covered it first, and a button to stop watching it.</p>
+      <p>Full picture guide: <a href="/Narrative-Radar-Guide.png" target="_blank">Narrative-Radar-Guide.png</a></p></div>`;
+  }
+  m.innerHTML = html;
+  applySearch();
+}
+function vidCard(v){
+  const id = reg(v);
+  return `<div class="vid" data-text="${esc((v.title+" "+v.source).toLowerCase())}"><a href="${esc(v.url)}" target="_blank" rel="noopener"><img loading="lazy" src="${esc(v.image)}" alt=""></a>
+    <div class="b"><div class="t">${v.ai?'<span class="aitag">AI</span> ':""}<a href="${esc(v.url)}" target="_blank" rel="noopener">${mark(v.title)}</a></div>
+    <div class="s"><span class="pl YT">YT</span>${esc(v.source)} · ${ago(v.ts)}${v.views?` · ${Number(v.views).toLocaleString()} views`:""}
+    <span class="act"><button data-pin="${id}" class="${isPinned(v)?"pinned":""}">★</button><button data-watch="${id}">+ Watch</button></span></div></div></div>`;
+}
+function renderTabs(){
+  document.getElementById("tabs").innerHTML = TABS.map(([k,l])=>`<button data-tab="${k}" class="${tab===k?"on":""}">${l}${k==="board"&&PINS.length?`<span class="n">${PINS.length}</span>`:""}${k==="alerts"&&(D&&D.alerts||[]).length?`<span class="n">${D.alerts.length}</span>`:""}</button>`).join("");
+}
+function applySearch(){
+  const q = (document.getElementById("search").value||"").toLowerCase().trim();
+  document.querySelectorAll("[data-text]").forEach(el => el.classList.toggle("hide", !!q && !el.dataset.text.includes(q)));
+}
+function openTopic(i){
+  const r = D.topics[i]; if(!r) return;
+  const items = r.items||[]; const now = Date.now()/1000;
+  const plats = [...new Set(items.map(x=>x.platform))];
+  const dayItems = items.filter(x=>now-x.ts<=86400);
+  const colors = {GN:"#6fb4ff",BING:"#4fd1c5",HN:"#ff8a3d",MASTO:"#b48cff",REDDIT:"#ff5a36",OUT:"#ffd166",YT:"#ff4d4d"};
+  const tl = dayItems.map(x=>`<span title="${esc(x.platform+": "+x.title)}" style="left:${(100-(now-x.ts)/864).toFixed(2)}%;background:${colors[PL[x.platform]]||"#ccc"}"></span>`).join("");
+  document.getElementById("modalBox").innerHTML = `<div style="display:flex;justify-content:space-between;gap:10px"><h3>${esc(r.label||r.query)}</h3><button id="closeModal">Close ✕</button></div>
+    <div class="meta">${esc(r.signal||"")} · last hour ${Math.round(r.latest||0)} vs normal ${(r.mean||0).toFixed(1)} · z ${(r.z||0).toFixed(1)}</div>
+    <div class="chips">${chips(r)}</div>
+    <h2 style="margin-top:12px">LAST 24 HOURS · EACH DOT IS ONE STORY (LEFT = 24H AGO, RIGHT = NOW)</h2>
+    <div class="tl">${tl}<small style="left:0">24h ago</small><small style="right:0">now</small></div>
+    <div class="filters" style="margin-top:22px">${["All",...plats].map(p=>`<button data-mf="${esc(p)}" class="${p==="All"?"on":""}">${esc(PL[p]||p)}</button>`).join("")}</div>
+    <ul class="items" id="modalItems">${items.map(x=>itemRow(x).replace('<li class="it','<li data-plat="'+esc(x.platform)+'" class="it')).join("")}</ul>
+    <div class="tools" style="margin-top:14px"><button id="rmTopic" data-line="${esc(r.query)}">Stop watching this topic</button></div>`;
+  document.getElementById("modal").classList.add("on");
+}
+
+async function load(){
+  try{
+    const res = await fetch("/api/data", {cache:"no-store"}); const d = await res.json();
+    if(d.loading) { D = null; render(); return; }
+    const fresh = d.generated !== lastGen; D = d; lastGen = d.generated;
+    if(fresh){ notifyNew(); render(); }
+  }catch(e){ if(location.protocol!=="file:") document.getElementById("last").textContent = "engine offline"; }
+}
+async function loadPins(){ try{ const r = await fetch("/api/pins"); PINS = await r.json(); }catch(e){ PINS = []; } }
+async function savePins(){ try{ await fetch("/api/pins",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pins:PINS})}); }catch(e){} }
+function tickNext(){ if(!D) return; const s = Math.max(0, Math.round(D.next_at - Date.now()/1000)); document.getElementById("next").textContent = s>0 ? `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}` : "checking…"; }
+
+function beep(){ try{ const c = new AudioContext(), o = c.createOscillator(), g = c.createGain(); o.frequency.value = 880; o.connect(g); g.connect(c.destination); g.gain.setValueAtTime(.15, c.currentTime); o.start(); o.stop(c.currentTime + .25); }catch(e){} }
+function notifyNew(){
+  if(!D) return;
+  let seen; try{ seen = JSON.parse(store("seen")||"[]"); }catch(e){ seen = []; }
+  const fresh = [];
+  (D.topics||[]).filter(t=>t.spike).forEach(t=>{ const k = "spike:"+t.query+":"+Math.floor(D.generated/3600); if(!seen.includes(k)){ seen.push(k); fresh.push(["SPIKE: "+(t.label||t.query), (t.headlines&&t.headlines[0]||{}).title||""]); }});
+  (D.breaking||[]).filter(b=>b.hot && b.ai).forEach(b=>{ const k = "b:"+key(b); if(!seen.includes(k)){ seen.push(k); fresh.push(["BREAKING (AI): "+b.source, b.title]); }});
+  store("seen", JSON.stringify(seen.slice(-400)));
+  if(!fresh.length || store("notify")!=="on") return;
+  beep();
+  if("Notification" in window && Notification.permission==="granted") fresh.slice(0,3).forEach(([t,b])=>new Notification(t,{body:b}));
+}
+
+document.addEventListener("click", async e => {
+  const t = e.target.closest("button, .card");
+  if(!t) return;
+  if(t.dataset.tab){ tab = t.dataset.tab; store("tab", tab); render(); window.scrollTo(0,0); return; }
+  if(t.dataset.vf){ vidFilter = t.dataset.vf; render(); return; }
+  if(t.dataset.mf){ document.querySelectorAll("[data-mf]").forEach(b=>b.classList.toggle("on", b===t)); document.querySelectorAll("#modalItems [data-plat]").forEach(li=>li.classList.toggle("hide", t.dataset.mf!=="All" && li.dataset.plat!==t.dataset.mf)); return; }
+  if(t.dataset.pin){
+    e.stopPropagation(); const it = ITEMS[t.dataset.pin]; const k = key(it);
+    if(isPinned(it)){ PINS = PINS.filter(p=>p.key!==k); t.classList.remove("pinned"); }
+    else { PINS.unshift({key:k,title:it.title,url:it.url,source:it.source,platform:it.platform,ts:it.ts,image:it.image||"",note:"",tag:"Lead",pinned_at:Date.now()}); t.classList.add("pinned"); }
+    savePins(); renderTabs(); return;
+  }
+  if(t.dataset.watch){
+    e.stopPropagation(); const it = ITEMS[t.dataset.watch];
+    const sel = String(window.getSelection()||"").trim();
+    const guess = sel || (it.title||"").split(/\s+/).slice(0,4).join(" ");
+    const topic = prompt("Watch this topic (keep it short: a name, word or phrase):", guess);
+    if(topic){ const r = await fetch("/api/watch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic})}); const j = await r.json(); alert(j.added ? "Added. The Radar is checking it now:\n"+j.added : "Couldn't add: "+(j.error||"")); }
+    return;
+  }
+  if(t.dataset.unpin!==undefined){ PINS.splice(+t.dataset.unpin,1); savePins(); render(); return; }
+  if(t.id==="exportPins"){
+    const md = "# Case Board: Listening Between the Lies\n\n" + PINS.map(p=>`## ${p.title}\n- Label: ${p.tag}\n- Source: ${p.source} (${p.platform})\n- Link: ${p.url}\n- Pinned: ${new Date(p.pinned_at).toLocaleString()}\n${p.note?`- Note: ${p.note}\n`:""}`).join("\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([md],{type:"text/markdown"})); a.download = "case-board.md"; a.click(); return;
+  }
+  if(t.id==="clearPins"){ if(confirm("Remove everything from the Case Board?")){ PINS = []; savePins(); render(); } return; }
+  if(t.id==="checkNow"){ t.textContent = "Checking…"; await fetch("/api/check",{method:"POST",body:"{}"}); setTimeout(()=>t.textContent="Check now", 4000); return; }
+  if(t.id==="notifyBtn"){
+    const on = store("notify")==="on";
+    if(!on && "Notification" in window && Notification.permission!=="granted") await Notification.requestPermission();
+    store("notify", on ? "off" : "on"); t.textContent = "Alerts: " + (on ? "off" : "on"); if(!on) beep(); return;
+  }
+  if(t.id==="addTopic"){ const v = document.getElementById("newTopic").value.trim(); if(!v) return; const r = await fetch("/api/watch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic:v})}); const j = await r.json(); alert(j.added ? "Added. The Radar is checking it now:\n"+j.added : "Couldn't add: "+(j.error||"")); return; }
+  if(t.id==="closeModal"){ document.getElementById("modal").classList.remove("on"); return; }
+  if(t.id==="rmTopic"){ if(confirm("Stop watching this topic?")){ await fetch("/api/watch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"remove",line:t.dataset.line})}); document.getElementById("modal").classList.remove("on"); alert("Removed. It disappears after the next round."); } return; }
+  if(t.classList.contains("card") && !e.target.closest("a")){ openTopic(+t.dataset.topic); }
+});
+document.addEventListener("change", e => {
+  if(e.target.dataset.tagpin!==undefined){ PINS[+e.target.dataset.tagpin].tag = e.target.value; savePins(); }
+});
+document.addEventListener("input", e => {
+  if(e.target.dataset.notepin!==undefined){ PINS[+e.target.dataset.notepin].note = e.target.value; clearTimeout(window._nt); window._nt = setTimeout(savePins, 600); }
+  if(e.target.id==="search") applySearch();
+  if(e.target.id==="hl"){ store("hl", e.target.value); clearTimeout(window._ht); window._ht = setTimeout(render, 300); }
+});
+document.getElementById("modal").addEventListener("click", e => { if(e.target.id==="modal") e.currentTarget.classList.remove("on"); });
+document.getElementById("hl").value = store("hl") || "";
+document.getElementById("notifyBtn").textContent = "Alerts: " + (store("notify")==="on" ? "on" : "off");
+renderTabs();
+(async () => { await loadPins(); await load(); render(); setInterval(load, 30000); setInterval(tickNext, 1000); })();
+</script>
+</body></html>
