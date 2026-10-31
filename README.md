@@ -1,7 +1,7 @@
 # Narrative Radar
 
-**A real-time news and narrative monitor built for the video podcast *Listening Between the Lies*.**
-It watches a list of topics across news and social sources every 15 minutes, flags when a topic suddenly surges, and puts breaking news, viral trends and news video on one screen, so a story can be caught early.
+**A news and narrative monitor built for the video podcast *Listening Between the Lies*.**
+Every 15 minutes it checks a list of topics across public news search, a few public social sites (Mastodon, Reddit, Hacker News) and outlet and YouTube feeds, flags when a topic suddenly surges, and puts breaking news, viral trends and news video on one screen, so a story can be caught early.
 
 ![Overview](docs/screenshots/overview.png)
 
@@ -9,7 +9,7 @@ It watches a list of topics across news and social sources every 15 minutes, fla
 
 - **Watchlist with spike alerts.** Every 15 minutes it counts how much each topic is being covered and compares the last hour to that topic's own normal. A big jump (z-score of 3 or more) raises an alert and logs it.
 - **Many free sources at once.** GDELT, Google News, Bing News, Hacker News, Mastodon and Reddit, plus 15 outlet feeds (wire services, tech, cybersecurity, disinformation researchers) and 13 YouTube news and AI channels.
-- **Who covered it first.** Each topic shows which platform carried a story first and in what order it spread.
+- **Who covered it first.** Each topic shows which of the platforms it reads had the earliest item on a story in the last 24 hours, and in what order the others followed.
 - **Mood.** Headlines are scored from hostile to positive with VADER sentiment analysis.
 - **Viral now.** Google Trends, Google top news, the most-shared links on Mastodon, the Hacker News front page and Wikipedia's most-read pages, with AI-related items flagged.
 - **Case Board.** Pin stories, label them (lead, evidence, claim to check) and export research notes for an episode.

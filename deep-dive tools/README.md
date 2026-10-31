@@ -2,7 +2,7 @@
 
 Your first OSINT tool. It collects public news headlines on any topic, groups them into
 narratives (the different "stories" being told about that topic), charts how each one
-spreads day by day, flags sudden spikes, and shows which outlets carried each story first.
+spreads day by day, flags sudden spikes, and shows which outlets in the collected headlines carried each story first.
 
 Author: Paul Edward Harris IV
 
@@ -28,7 +28,7 @@ Open `reports/sample_harbor_city_report.html` in your browser.
 Exercise: find the narrative that started on small sites and then spread to bigger ones.
 Which day did it spike? Which outlets carried it first?
 
-## Real run (live news)
+## Real run (real public headlines)
 
 ```
 python collect.py "water rates" --days 14
